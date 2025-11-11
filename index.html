@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="sr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Organizator recepata i potrošnje sastojaka</title>
+<script src="https://cdn.jsdelivr.net/npm/vue@3.2.47/dist/vue.global.prod.js"></script>
+<link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+</head>
+<body class="bg-gray-50 min-h-screen p-8">
+  <div id="app" class="max-w-5xl mx-auto bg-white rounded-2xl shadow-lg p-6">
+    <h1 class="text-3xl font-bold mb-6 text-center text-green-700">🥕 Organizator recepata i potrošnje sastojaka</h1>
+
+    <div class="mb-10">
+      <h2 class="text-xl font-semibold mb-3">Dodaj novi recept</h2>
+      <input v-model="newRecipe.name" placeholder="Naziv recepta" class="border rounded-lg p-2 w-full mb-2">
+      <textarea v-model="newRecipe.ingredients" placeholder="Sastojci (zarez ili novi red)" class="border rounded-lg p-2 w-full mb-2"></textarea>
+      <textarea v-model="newRecipe.instructions" placeholder="Uputstvo" class="border rounded-lg p-2 w-full mb-2"></textarea>
+      <button @click="addRecipe" class="bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700">Dodaj recept</button>
+    </div>
+
+    <div class="mb-6">
+      <h2 class="text-xl font-semibold mb-3">Pretraži recepte</h2>
+      <input v-model="searchQuery" placeholder="Traži po sastojku ili imenu" class="border rounded-lg p-2 w-full">
+    </div>
+
+    <div>
+      <h2 class="text-xl font-semibold mb-3">Lista recepata</h2>
+      <div v-for="r in filteredRecipes" :key="r.name" class="border rounded-xl p-4 mb-4 bg-gray-100 hover:bg-green-50 transition">
+        <h3 class="text-lg font-bold text-green-700">{{ r.name }}</h3>
+        <p><strong>Sastojci:</strong> {{ r.ingredients }}</p>
+        <p class="mt-2 whitespace-pre-line">{{ r.instructions }}</p>
+        <button @click="deleteRecipe(r.name)" class="mt-2 text-sm text-red-600 hover:underline">Obriši</button>
+      </div>
+      <p v-if="filteredRecipes.length===0" class="text-gray-500 italic">Nema recepata sa tim kriterijumom.</p>
+    </div>
+  </div>
+
+  <script>
+  const app = Vue.createApp({
+    data() {
+      return {
+        newRecipe: { name: '', ingredients: '', instructions: '' },
+        recipes: [],
+        searchQuery: ''
+      };
+    },
+    computed: {
+      filteredRecipes() {
+        const q = this.searchQuery.toLowerCase();
+        return this.recipes.filter(r =>
+          !q ||
+          r.name.toLowerCase().includes(q) ||
+          r.ingredients.toLowerCase().includes(q)
+        );
+      }
+    },
+    methods: {
+      addRecipe() {
+        if (!this.newRecipe.name) {
+          alert('Unesi naziv recepta');
+          return;
+        }
+        this.recipes.push({ ...this.newRecipe });
+        this.newRecipe = { name: '', ingredients: '', instructions: '' };
+        this.save();
+      },
+      deleteRecipe(name) {
+        if (confirm('Da li sigurno želiš da obrišeš recept "' + name + '"?')) {
+          this.recipes = this.recipes.filter(r => r.name !== name);
+          this.save();
+        }
+      },
+      save() {
+        localStorage.setItem('recipes', JSON.stringify(this.recipes));
+      }
+    },
+    mounted() {
+      const saved = localStorage.getItem('recipes');
+      if (saved) this.recipes = JSON.parse(saved);
+    }
+  });
+  app.mount('#app');
+  </script>
+</body>
+</html>
